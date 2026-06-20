@@ -12,7 +12,7 @@ env-down:
 env-cleanup:
 	@read -p "Очистить все volumes? [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-	  docker compose down go-rest-prod-postgres && \
+	  docker compose down go-rest-prod-postgres port-forwarder && \
 	  rm -rf out/pgdata && \
 	  echo "Файлы окружения очищены"; \
   	else \
@@ -51,3 +51,17 @@ migrate-action:
 		-path /migrations \
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@go-rest-prod-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 		"$(action)"
+
+run:
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	export POSTGRES_HOST=localhost && \
+	go mod tidy && \
+	go run cmd/go-rest-prod/main.go
+
+clear-port:
+	@PID=$$(lsof -t -i ${HTTP_ADDR}); \
+	if [ -n "$$PID" ]; then \
+	  kill -9 $$PID && echo "Освобождён порт ${HTTP_ADDR} (PID $$PID)"; \
+	else \
+	  echo "Порт ${HTTP_ADDR} уже свободен"; \
+	fi
