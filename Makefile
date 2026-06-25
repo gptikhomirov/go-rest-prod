@@ -13,7 +13,7 @@ env-cleanup:
 	@read -p "Очистить все volumes? [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
 	  docker compose down go-rest-prod-postgres port-forwarder && \
-	  rm -rf out/pgdata && \
+	  rm -rf ${PROJECT_ROOT}/out/pgdata && \
 	  echo "Файлы окружения очищены"; \
   	else \
   	  echo "Отмена очистки"; \
@@ -56,7 +56,7 @@ run:
 	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
 	export POSTGRES_HOST=localhost && \
 	go mod tidy && \
-	go run cmd/go-rest-prod/main.go
+	go run ${PROJECT_ROOT}/cmd/go-rest-prod/main.go
 
 clear-port:
 	@PID=$$(lsof -t -i ${HTTP_ADDR}); \

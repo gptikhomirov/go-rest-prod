@@ -14,7 +14,7 @@ func (r *UsersRepository) DeleteUser(
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
-	query := `DELETE FROM go_rest_prod.users WHERE id=$1`
+	query := `DELETE FROM go_rest_prod.users WHERE id=$1;`
 
 	commandTag, err := r.pool.Exec(ctx, query, id)
 	if err != nil {
