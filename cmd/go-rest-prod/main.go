@@ -55,9 +55,17 @@ func main() {
 		core_http_middleware.Trace(),
 		core_http_middleware.Panic(),
 	)
-	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRoutes(usersTransportHTTP.Routes()...)
-	httpServer.RegisterAPIRouters(apiVersionRouter)
+	apiVersionRouterV1 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
+	apiVersionRouterV1.RegisterRoutes(usersTransportHTTP.Routes()...)
+
+	apiVersionRouterV2 := core_http_server.NewAPIVersionRouter(
+		core_http_server.ApiVersion2,
+		core_http_middleware.Test("ROUTER MIDDLEWARE"),
+	)
+	apiVersionRouterV2.RegisterRoutes(usersTransportHTTP.Routes()...)
+
+	httpServer.RegisterAPIRouters(apiVersionRouterV1)
+	httpServer.RegisterAPIRouters(apiVersionRouterV2)
 
 	if err = httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP Server run error", zap.Error(err))

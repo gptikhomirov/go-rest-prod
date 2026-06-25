@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gptikhomirov/go-rest-prod/internal/core/domain"
+	core_http_middleware "github.com/gptikhomirov/go-rest-prod/internal/core/transport/http/middleware"
 	core_http_server "github.com/gptikhomirov/go-rest-prod/internal/core/transport/http/server"
 )
 
@@ -58,6 +59,9 @@ func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
 			Method:  http.MethodGet,
 			Path:    "/users",
 			Handler: h.GetUsers,
+			Middleware: []core_http_middleware.Middleware{
+				core_http_middleware.Test("GET USERS"),
+			},
 		},
 		{
 			Method:  http.MethodGet,
