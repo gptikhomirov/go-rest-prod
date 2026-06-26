@@ -24,3 +24,22 @@ func GetIntQueryParam(r *http.Request, key string) (*int, error) {
 
 	return &val, nil
 }
+
+func GetLimitOffsetQueryParams(r *http.Request) (*int, *int, error) {
+	const (
+		limitKey  = "limit"
+		offsetKey = "offset"
+	)
+
+	limit, err := GetIntQueryParam(r, limitKey)
+	if err != nil {
+		return nil, nil, fmt.Errorf("get 'limit' query param: %w", err)
+	}
+
+	offset, err := GetIntQueryParam(r, offsetKey)
+	if err != nil {
+		return nil, nil, fmt.Errorf("get 'offset' query param: %w", err)
+	}
+
+	return limit, offset, nil
+}

@@ -1,4 +1,4 @@
-package users_transport_http
+package tasks_transport_http
 
 import (
 	"net/http"
@@ -8,9 +8,11 @@ import (
 	core_http_response "github.com/gptikhomirov/go-rest-prod/internal/core/transport/http/response"
 )
 
-type GetUsersResponse []UserDTOResponse
+type GetTasksResponse []TaskDTOResponse
 
-func (h *UsersHTTPHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
+const userIDQueryKey = "user_id"
+
+func (h *TasksHTTPHandler) GetTasks(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
 	responseHandler := core_http_response.NewHTTPResponseHandler(log, rw)
@@ -21,14 +23,31 @@ func (h *UsersHTTPHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
 			err,
 			"failed to get limit/offset query params",
 		)
+
+		return
 	}
 
-	userDomains, err := h.usersService.GetUsers(ctx, limit, offset)
+	userID, err := core_http_request.GetIntQueryParam(r, userIDQueryKey)
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to get users")
+		responseHandler.ErrorResponse(
+			err,
+			"failed to get user_id query param",
+		)
+
+		return
 	}
 
-	response := GetUsersResponse(usersDTOFromDomains(userDomains))
+	tasks, err := h.tasksService.GetTasks(ctx, limit, offset, userID)
+	if err != nil {
+		responseHandler.ErrorResponse(
+			err,
+			"failed to get task list",
+		)
+
+		return
+	}
+
+	response := GetTasksResponse(taskDTOsFromDomains(tasks))
 
 	responseHandler.JSONResponse(response, http.StatusOK)
 }
