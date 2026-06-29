@@ -10,24 +10,48 @@ import (
 	core_postgres_pool "github.com/gptikhomirov/go-rest-prod/internal/core/repository/postgres/pool"
 )
 
-func (r *TasksRepository) GetTask(
+func (r *TasksRepository) PatchTask(
 	ctx context.Context,
 	id int,
+	task domain.Task,
 ) (domain.Task, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
 	query := `
-	SELECT id, version, title, description, completed, created_at, completed_at, author_user_id 
-	FROM go_rest_prod.tasks
-	WHERE id=$1;
+	UPDATE go_rest_prod.tasks
+	SET 
+	    title=$1,
+	    description=$2,
+	    completed=$3,
+		completed_at=$4,
+		version=version+1
+	WHERE id=$5 and version=$6
+	RETURNING 
+	    id,
+	    version, 
+	    title,
+	    description,
+	    completed,
+	    created_at, 
+	    completed_at,
+	    author_user_id;
 	`
 
-	row := r.pool.QueryRow(ctx, query, id)
+	row := r.pool.QueryRow(
+		ctx,
+		query,
+		task.Title,
+		task.Description,
+		task.Completed,
+		task.CompletedAt,
+		id,
+		task.Version,
+	)
 
 	var taskModel TaskModel
 
-	err := row.Scan(
+	if err := row.Scan(
 		&taskModel.ID,
 		&taskModel.Version,
 		&taskModel.Title,
@@ -36,17 +60,16 @@ func (r *TasksRepository) GetTask(
 		&taskModel.CreatedAt,
 		&taskModel.CompletedAt,
 		&taskModel.AuthorUserID,
-	)
-	if err != nil {
+	); err != nil {
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			return domain.Task{}, fmt.Errorf(
-				"task with id=`%d`: %w",
+				"task with id=`%d` concurrently accessed: %w",
 				id,
-				core_errors.ErrNotFound,
+				core_errors.ErrConflict,
 			)
 		}
 
-		return domain.Task{}, fmt.Errorf("failed to scan row: %w", err)
+		return domain.Task{}, fmt.Errorf("failed to scan: %w", err)
 	}
 
 	taskDomain := taskDomainFromModel(taskModel)
