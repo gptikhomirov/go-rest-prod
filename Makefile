@@ -19,11 +19,19 @@ env-cleanup:
   	  echo "Отмена очистки"; \
   	fi
 
-env-port-forward:
+env-db-port-forward:
 	@docker compose up -d port-forwarder
 
-env-port-close:
+env-db-port-close:
 	@docker compose down port-forwarder
+
+env-http-addr-clean:
+	@PID=$$(lsof -t -i ${HTTP_ADDR}); \
+    	if [ -n "$$PID" ]; then \
+    	  kill -9 $$PID && echo "Освобождён порт ${HTTP_ADDR} (PID $$PID)"; \
+    	else \
+    	  echo "Порт ${HTTP_ADDR} уже свободен"; \
+    	fi
 
 migrate-create:
 	@if [ -z "$(seq)" ]; then \
@@ -58,10 +66,11 @@ run:
 	go mod tidy && \
 	go run ${PROJECT_ROOT}/cmd/go-rest-prod/main.go
 
-clear-port:
-	@PID=$$(lsof -t -i ${HTTP_ADDR}); \
-	if [ -n "$$PID" ]; then \
-	  kill -9 $$PID && echo "Освобождён порт ${HTTP_ADDR} (PID $$PID)"; \
-	else \
-	  echo "Порт ${HTTP_ADDR} уже свободен"; \
-	fi
+logs-cleanup:
+	@read -p "Очистить все log файлы? [y/N]: " ans; \
+	if [ "$$ans" = "y" ]; then \
+	  rm -rf ${PROJECT_ROOT}/out/logs && \
+	  echo "Файлы логов очищены"; \
+  	else \
+  	  echo "Отмена очистки логов"; \
+  	fi
