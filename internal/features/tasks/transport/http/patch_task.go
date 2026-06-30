@@ -12,9 +12,12 @@ import (
 )
 
 type PatchTaskRequest struct {
-	Title       core_http_types.Nullable[string] `json:"title"`
-	Description core_http_types.Nullable[string] `json:"description"`
-	Completed   core_http_types.Nullable[bool]   `json:"completed"`
+	// Новый заголовок. Поле опционально; null недопустим. От 1 до 100 символов.
+	Title core_http_types.Nullable[string] `json:"title"       swaggertype:"string"                         example:"Купить молоко"`
+	// Новое описание. Поле опционально; передача null очищает описание в БД.
+	Description core_http_types.Nullable[string] `json:"description" swaggertype:"string" extensions:"x-nullable" example:"2 литра, до пятницы"`
+	// Признак завершённости. Поле опционально; null недопустим.
+	Completed core_http_types.Nullable[bool] `json:"completed"   swaggertype:"boolean"                        example:"true"`
 }
 
 func (r *PatchTaskRequest) Validate() error {
@@ -49,6 +52,25 @@ func (r *PatchTaskRequest) Validate() error {
 
 type PatchTaskResponse TaskDTOResponse
 
+// PatchTask godoc
+// @Summary     Изменение задачи
+// @Description Изменение информации об уже существующей в системе задаче.
+// @Description ### Логика обновления полей (three-state logic):
+// @Description 1. **Поле не передано**: значение в БД не меняется
+// @Description 2. **Явно передано значение**: `"description": "новый текст"` — устанавливает новое значение
+// @Description 3. **Передан null**: `"description": null` — очищает поле в БД (set to NULL)
+// @Description Ограничения: `title` и `completed` не могут быть выставлены как null
+// @Tags        tasks
+// @Accept      json
+// @Produce     json
+// @Param       id path int true                              "ID изменяемой задачи"
+// @Param       request body PatchTaskRequest true            "PatchTask тело запроса"
+// @Success     200 {object} PatchTaskResponse                "Успешно изменённая задача"
+// @Failure     400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure     404 {object} core_http_response.ErrorResponse "Task not found"
+// @Failure     409 {object} core_http_response.ErrorResponse "Conflict"
+// @Failure     500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router      /tasks/{id} [patch]
 func (h *TasksHTTPHandler) PatchTask(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

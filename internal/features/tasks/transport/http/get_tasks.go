@@ -12,6 +12,19 @@ type GetTasksResponse []TaskDTOResponse
 
 const userIDQueryKey = "user_id"
 
+// GetTasks godoc
+// @Summary     Получить список задач
+// @Description Получить список задач с пагинацией и опциональной фильтрацией по автору
+// @Tags        tasks
+// @Accept      json
+// @Produce     json
+// @Param       limit query int false                         "Лимит записей"
+// @Param       offset query int false                        "Смещение"
+// @Param       user_id query int false                       "Фильтр по ID автора задачи"
+// @Success     200 {object} GetTasksResponse                 "Список задач"
+// @Failure     400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure     500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router      /tasks [get]
 func (h *TasksHTTPHandler) GetTasks(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

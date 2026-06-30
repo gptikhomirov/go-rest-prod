@@ -12,12 +12,31 @@ import (
 )
 
 type GetStatisticsResponse struct {
-	TasksCreated               int      `json:"tasks_created"`
-	TasksCompleted             int      `json:"tasks_completed"`
-	TasksCompletedRate         *float64 `json:"tasks_completed_rate"`
-	TasksAverageCompletionTime *string  `json:"tasks_average_completion_time"`
+	// Количество созданных задач за период.
+	TasksCreated int `json:"tasks_created"   example:"42"`
+	// Количество завершённых задач за период.
+	TasksCompleted int `json:"tasks_completed" example:"30"`
+	// Доля завершённых задач (0..1). null, если не было созданных задач.
+	TasksCompletedRate *float64 `json:"tasks_completed_rate" example:"0.714"`
+	// Среднее время выполнения задачи (Go duration). null, если нет завершённых задач.
+	TasksAverageCompletionTime *string `json:"tasks_average_completion_time" example:"36h12m"`
 }
 
+// GetStatistics godoc
+// @Summary     Получить статистику
+// @Description Получить агрегированную статистику по задачам с опциональной фильтрацией
+// @Description по пользователю и временному диапазону. Все параметры необязательны:
+// @Description без них статистика считается по всем задачам за всё время.
+// @Tags        statistics
+// @Accept      json
+// @Produce     json
+// @Param       user_id query int false                       "Фильтр по ID пользователя"
+// @Param       from query string false                       "Начало периода (дата, RFC3339/YYYY-MM-DD)"
+// @Param       to query string false                         "Конец периода (дата, RFC3339/YYYY-MM-DD)"
+// @Success     200 {object} GetStatisticsResponse            "Статистика по задачам"
+// @Failure     400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure     500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router      /statistics [get]
 func (h *StatisticsHTTPHandler) GetStatistics(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

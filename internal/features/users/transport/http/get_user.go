@@ -14,6 +14,18 @@ type GetUserRequest struct {
 
 type GetUserResponse UserDTOResponse
 
+// GetUser godoc
+// @Summary     Получить пользователя
+// @Description Получить пользователя по ID
+// @Tags        users
+// @Accept      json
+// @Produce     json
+// @Param       id path int true                              "ID пользователя"
+// @Success     200 {object} GetUserResponse                  "Найденный пользователь"
+// @Failure     400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure     404 {object} core_http_response.ErrorResponse "User not found"
+// @Failure     500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router      /users/{id} [get]
 func (h *UsersHTTPHandler) GetUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

@@ -13,8 +13,8 @@ import (
 )
 
 type PatchUserRequest struct {
-	FullName    core_http_types.Nullable[string] `json:"full_name"`
-	PhoneNumber core_http_types.Nullable[string] `json:"phone_number"`
+	FullName    core_http_types.Nullable[string] `json:"full_name"    swaggertype:"string"                         example:"Ivanov Ivan"`
+	PhoneNumber core_http_types.Nullable[string] `json:"phone_number" swaggertype:"string" extensions:"x-nullable" example:"+79998887766"`
 }
 
 func (r *PatchUserRequest) Validate() error {
@@ -47,6 +47,25 @@ func (r *PatchUserRequest) Validate() error {
 
 type PatchUserResponse UserDTOResponse
 
+// PatchUser godoc
+// @Summary     Изменение пользователя
+// @Description Изменение информации об уже существующем в системе пользователе.
+// @Description ### Логика обновления полей (three-state logic):
+// @Description 1. **Поле не передано**: `phone_number` игнорируется, значение в БД не меняется
+// @Description 2. **Явно передано значение**: `"phone_number": "+711122233344"` — устанавливает новый номер
+// @Description 3. **Передан null**: `"phone_number": null` — очищает поле в БД (set to NULL)
+// @Description Ограничения: `full_name` не может быть выставлен как null
+// @Tags        users
+// @Accept      json
+// @Produce     json
+// @Param       id path int true                              "ID изменяемого пользователя"
+// @Param       request body PatchUserRequest true            "PatchUser тело запроса"
+// @Success     200 {object} PatchUserResponse                "Успешно изменённый пользователь"
+// @Failure     400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure     404 {object} core_http_response.ErrorResponse "User not found"
+// @Failure     409 {object} core_http_response.ErrorResponse "Conflict"
+// @Failure     500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router      /users/{id} [patch]
 func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
