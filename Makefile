@@ -60,12 +60,6 @@ migrate-action:
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@go-rest-prod-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 		"$(action)"
 
-run:
-	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
-	export POSTGRES_HOST=localhost && \
-	go mod tidy && \
-	go run ${PROJECT_ROOT}/cmd/go-rest-prod/main.go
-
 logs-cleanup:
 	@read -p "Очистить все log файлы? [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
@@ -74,3 +68,18 @@ logs-cleanup:
   	else \
   	  echo "Отмена очистки логов"; \
   	fi
+
+run:
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	export POSTGRES_HOST=localhost && \
+	go mod tidy && \
+	go run ${PROJECT_ROOT}/cmd/go-rest-prod/main.go
+
+deploy:
+	@docker compose up -d --build go-rest-prod
+
+undeploy:
+	@docker compose down go-rest-prod
+
+ps:
+	@docker compose ps
